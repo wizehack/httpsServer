@@ -1,0 +1,124 @@
+# create private key for root ca ceritification
+openssl genrsa -aes256 -out ./wizehack-rootca.key 2048
+
+# enter password
+# 1234567890
+
+chmod 600 wizehack-rootca.key
+
+# make conf file to create CSR(Certificate Signing Request) 
+touch rootca_openssl.conf
+
+[ req ]
+default_bits            = 2048
+default_md              = sha1
+default_keyfile         = lesstif-rootca.key
+distinguished_name      = req_distinguished_name
+extensions             = v3_ca
+req_extensions = v3_ca
+  
+[ v3_ca ]
+basicConstraints       = critical, CA:TRUE, pathlen:0
+subjectKeyIdentifier   = hash
+##authorityKeyIdentifier = keyid:always, issuer:always
+keyUsage               = keyCertSign, cRLSign
+nsCertType             = sslCA, emailCA, objCA
+[req_distinguished_name ]
+countryName                     = KR (2 letter code)
+    countryName_default             = KR
+    countryName_min                 = 2
+    countryName_max                 = 2
+     
+# 회사명 입력
+    organizationName              = wizehack company (eg, company)
+    organizationName_default      = wizehack Inc.
+      
+# 부서 입력
+#organizationalUnitName          = wizehack Unit (eg, section)
+#organizationalUnitName_default  = wizehack Project
+      
+# SSL 서비스할 domain 명 입력
+    commonName                      = wizehack (eg, your name or your server's hostname)
+    commonName_default             = wizehack's Self Signed CA
+    commonName_max                  = 64 
+
+# command to create csr
+openssl req -new -key ./wizehack-rootca.key -out ./wizehack-rootca.csr -config rootca_openssl.conf
+
+# create root ca Certification
+openssl x509 -req \
+            -days 3650 \
+            -extensions v3_ca \
+            -set_serial 1 \
+            -in ./wizehack-rootca.csr \
+            -signkey ./wizehack-rootca.key \
+            -out ./wizehack-rootca.crt \
+            -extfile rootca_openssl.conf
+
+# print root ca Certification
+openssl x509 -text -in ./wizehack-rootca.crt
+
+
+# create private key to install on HOST 
+openssl genrsa -aes256 -out ./wizehack.com.key 2048
+
+# Remove Passphrase from key
+cp ./wizehack.com.key ./wizehack.com.key.enc
+openssl rsa -in ./wizehack.com.key.enc -out ./wizehack.com.key
+
+chmod 600  ./wizehack.com.key*
+
+touch host_openssl.conf
+
+[ req ]
+default_bits            = 2048
+default_md              = sha1
+default_keyfile         = lesstif-rootca.key
+distinguished_name      = req_distinguished_name
+extensions             = v3_user
+## 인증서 요청시에도 extension 이 들어가면 authorityKeyIdentifier 를 찾지 못해 에러가 나므로 막아둔다.
+## req_extensions = v3_user
+ 
+[ v3_user ]
+# Extensions to add to a certificate request
+basicConstraints = CA:FALSE
+authorityKeyIdentifier = keyid,issuer
+subjectKeyIdentifier = hash
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+## SSL 용 확장키 필드
+extendedKeyUsage = serverAuth,clientAuth
+subjectAltName          = @alt_names
+[ alt_names]
+## Subject AltName의 DNSName field에 SSL Host 의 도메인 이름을 적어준다.
+## 멀티 도메인일 경우 *.lesstif.com 처럼 쓸 수 있다.
+DNS.1   = www.lesstif.com
+DNS.2   = lesstif.com
+DNS.3   = *.lesstif.com
+ 
+[req_distinguished_name ]
+countryName                     = KR (2 letter code)
+    countryName_default             = KR
+    countryName_min                 = 2
+    countryName_max                 = 2
+     
+# 회사명 입력
+    organizationName              = wizehack company (eg, company)
+    organizationName_default      = wizehack Inc.
+      
+# 부서 입력
+    organizationalUnitName          = wizehack SSL Project (eg, section)
+    organizationalUnitName_default  = wizehack SSL Project
+      
+# SSL 서비스할 domain 명 입력
+    commonName                      = wizehack.com (eg, your name or your server's hostname)
+    commonName_default             = wizehack.com
+    commonName_max                  = 64
+
+openssl req -new  -key ./wizehack.com.key -out ./wizehack.com.csr -config host_openssl.conf
+
+openssl x509 -req -days 1825 -extensions v3_user -in ./wizehack.com.csr \
+            -CA ./wizehack-rootca.crt -CAcreateserial \
+            -CAkey  ./wizehack-rootca.key \
+            -out ./wizehack.com.crt  -extfile host_openssl.conf
+
+openssl x509 -text -in ./wizehack.com.crt
