@@ -6,16 +6,12 @@
   "dependencies": {
     "body-parser": "*",
     "express": "4.14",
-    "mkdirp": "0.5.1",
-    "mongodb": "~2.0",
-    "mongoose": "~4.0",
-    "request": "*",
-    "rimraf": "2.5.2"
+    "request": "*"
   },
   "description": "Automatic Testing Of Software",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wizehack/atos.git"
+    "url": "https://github.com/wizehack/httpsServer.git"
   }
 }
