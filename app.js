@@ -24,5 +24,8 @@ var sdpApi = require('./router/sdp')(app, sdpModel);
 //http.createServer(app).listen(8080);
 // Create an HTTPS service identical to the HTTP service.
 https.createServer(options, app).listen(4430, function () {
-    console.log('Server Running at http://' + ip + ':' + port);
+    console.log('Server Running at https://' + ip + ':' + port);
+    console.log('------------ test apis -----------------------');
+    console.log('GET https://' + ip + ':' + port + '/expiredAuth');
+    console.log('POST https://' + ip + ':' + port + '/test/initservices');
 });
