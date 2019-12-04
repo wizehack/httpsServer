@@ -4,7 +4,7 @@ const http = require('http');
 const fs = require('fs');
 
 // define model
-var sdpModel = require('./model/sdp')
+var db = require('./model/db')
 
 // configure ssl option
 const options = {
@@ -18,7 +18,7 @@ const ip = '127.0.0.1';
 const port = process.env.PORT || 4430;
 
 // configure router
-var sdpApi = require('./router/sdp')(app, sdpModel);
+var sdpApi = require('./router/sdp')(app, db);
 
 // Create an HTTP service.
 //http.createServer(app).listen(8080);
